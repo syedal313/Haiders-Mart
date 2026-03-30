@@ -1,0 +1,62 @@
+@import "tailwindcss";
+input[type="range"].neon-slider {
+  accent-color: #ff00aa; /* neon-magenta */
+}
+
+input[type="range"].neon-slider::-webkit-slider-thumb {
+  background: #ff00aa;
+  box-shadow: 0 0 20px #ff00aa;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+@theme {
+  --color-neon-orange: #FF4E00;
+  --color-neon-cyan: #00D2FF;
+  --color-neon-magenta: #FF00E5;
+  --color-dark-bg: #050505;
+  
+  --font-display: 'Orbitron', sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#050505] text-white selection:bg-neon-cyan selection:text-black;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+  
+  .neon-border-cyan {
+    @apply border-neon-cyan/50 shadow-[0_0_15px_rgba(0,210,255,0.3)];
+  }
+
+  .neon-text-cyan {
+    @apply text-neon-cyan drop-shadow-[0_0_8px_rgba(0,210,255,0.8)];
+  }
+
+  .neon-button-orange {
+    @apply bg-neon-orange text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest transition-all hover:scale-105 hover:shadow-[0_0_20px_#FF4E00] active:scale-95;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap');
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF4E00;
+}

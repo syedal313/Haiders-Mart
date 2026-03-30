@@ -1,0 +1,9 @@
+{
+  "name": "Haiders Mart",
+  "description": "Futuristic 3D Full-Stack E-Commerce Platform for Pakistan",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
