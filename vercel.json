@@ -6,7 +6,8 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/dist/index.html"
+      "destination": "/index.html"
+
     }
   ]
 }
