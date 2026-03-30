@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { Analytics } from "@vercel/analytics/next"
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
