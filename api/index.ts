@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+import { put } from '@vercel/blob';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
 import multer from 'multer';
@@ -12,6 +13,7 @@ const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'haiders-mart-secret-node-01';
 
 // --- Firebase Admin init ---
+
 if (!admin.apps.length) {
   let serviceAccount: any;
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -41,7 +43,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
 });
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // --- Auth middleware ---
 const authenticate = (req: any, res: any, next: any) => {
@@ -106,11 +108,15 @@ app.get('/api/auth/me', (req, res) => {
 });
 
 // --- Upload routes ---
-app.post('/api/admin/upload-image', authenticate, isAdmin, upload.single('image'), (req, res) => {
+app.post('/api/admin/upload-image', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
-  const imageUrl = `/uploads/${req.file.filename}`;
-  res.json({ imageUrl });
+  const blob = await put(req.file.originalname, req.file.buffer, {
+    access: 'public',
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  });
+  res.json({ imageUrl: blob.url });
 });
+
 
 app.post('/api/admin/upload-glb', authenticate, isAdmin, upload.single('glb'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No GLB file uploaded' });
@@ -184,6 +190,5 @@ app.get('/api/admin/orders', authenticate, isAdmin, async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), db: 'Firestore', region: 'Pakistan' });
 });
-
 // --- Export the app for Vercel ---
 export default app;

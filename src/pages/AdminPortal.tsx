@@ -203,25 +203,7 @@ const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     await fetch('/api/auth/logout', { method: 'POST' });
     window.location.href = '/login';
   };
-const handleGlbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
 
-  const formData = new FormData();
-  formData.append("glb", file);
-
-  try {
-    const res = await fetch("/api/admin/upload-glb", {
-      method: "POST",
-      body: formData,
-      credentials: "include"
-    });
-    const data = await res.json();
-    setNewProduct({ ...newProduct, glbUrl: data.glbUrl });
-  } catch (err) {
-    alert("Failed to upload 3D model");
-  }
-};
 
   const handleGoogleLogin = async () => {
     try {
@@ -647,20 +629,7 @@ const handleGlbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
             />
           </div>
           {/* GLB 3D Model Upload */}
-<div className="space-y-3">
-  <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-4">
-    3D Model (GLB file) <span className="text-neon-cyan">- Optional but recommended</span>
-  </label>
-  <input 
-    type="file" 
-    accept=".glb"
-    onChange={handleGlbUpload}
-    className="w-full bg-white/5 border border-white/10 rounded-full px-6 py-3 text-sm"
-  />
-  {newProduct.glbUrl && (
-    <p className="text-xs text-neon-cyan">✅ 3D Model uploaded</p>
-  )}
-</div>
+
 
           {/* Category + Original Price */}
           <div className="grid grid-cols-2 gap-4">
