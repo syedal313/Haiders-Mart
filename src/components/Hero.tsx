@@ -15,12 +15,13 @@ export default function Hero() {
             The Future of Retail is Here
           </div>
           <h1 className="text-6xl md:text-8xl font-black font-display leading-tight mb-6">
-            UPGRADE <br />
+            SHOP  <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-orange via-neon-magenta to-neon-cyan">
-              YOUR REALITY
+              YOUR STYLE
             </span>
           </h1>
           <p className="text-lg text-white/60 max-w-lg mb-10 leading-relaxed">
+          Moder And Premium Quality Garments, Pharmacy, and Styling curated for the next generation.
             Experience Pakistan's first 3D-immersive e-commerce platform.
             Garments, Pharmacy, and Styling curated for the next generation.
           </p>
