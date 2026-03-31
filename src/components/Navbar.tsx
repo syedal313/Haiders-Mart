@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect, useRef } from 'react';
 import VoiceSearch from './VoiceSearch';
 import CartDrawer from './CartDrawer';
+import logo from './public/logo1.png';
 
 import { Link} from 'react-router-dom';
 import WishlistDrawer from './WishlistDrawer';
@@ -73,17 +74,20 @@ export default function Navbar({ onCheckout, user }: NavbarProps) {
     await fetch('/api/auth/logout', { method: 'POST' });
     window.location.reload();
   };
-
   return (
     <>
-      <nav className="fixed top-12 left-0 right-0 z-50 px-6 py-4" >
+      <nav className="fixed top-6 left-0 right-0 z-50 px-6 py-4" >
         <div className="max-w-7xl mx-auto glass-card px-8 py-4 flex items-center justify-between border-neon-cyan/20">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-neon-orange rounded-lg flex items-center justify-center font-black text-2xl italic group-hover:rotate-12 transition-transform shadow-[0_0_20px_rgba(255,78,0,0.3)]">H</div>
-            <span className="text-2xl font-black tracking-tighter font-display hidden sm:block">
-              HAIDERS <span className="text-neon-cyan">MART</span>
-            </span>
-          </Link>
+        <Link to="/" className="flex items-center gap-2 group">
+  <img 
+    src={logo}
+    alt="Haiders Mart" 
+    className="h-20 w-auto" 
+  />
+  {/* <span className="text-2xl font-black tracking-tighter font-display hidden sm:block">
+    Haiders <span className="text-neon-cyan">MART</span>
+  </span> */}
+</Link>
 
           <div className="hidden lg:flex flex-1 max-w-md mx-8 relative" ref={searchRef}>
             <div className="relative w-full">
@@ -243,10 +247,9 @@ export default function Navbar({ onCheckout, user }: NavbarProps) {
               className="fixed top-0 right-0 bottom-0 w-full max-w-xs bg-black/90 border-l border-white/10 z-[101] p-8 flex flex-col"
             >
               <div className="flex justify-between items-center mb-12">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-neon-orange rounded flex items-center justify-center font-black text-lg italic">H</div>
-                  <span className="font-black tracking-tighter font-display">HAIDERS</span>
-                </div>
+              <div className="flex items-center gap-2">
+  <img src={logo} alt="Haiders Mart" className="h-15 w-auto" />
+</div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                   <X size={24} />
                 </button>

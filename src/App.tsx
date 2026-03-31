@@ -20,6 +20,8 @@ import ProductDetail from './components/ProductDetail';
 import ProductModal from './components/ProductModal';
 import { useSearchParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { SpeedInsights } from "@vercel/speed-insights/react"
+import logo from './components/public/logo1.png';
 
 interface Product {
   id: string;
@@ -533,10 +535,7 @@ export default function App() {
 
         <footer className="max-w-7xl mx-auto px-6 py-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-neon-orange rounded flex items-center justify-center font-black text-lg italic">H</div>
-            <span className="font-black tracking-tighter font-display">
-              HAIDERS <span className="text-neon-cyan">MART</span>
-            </span>
+              <img src={logo} alt="Haiders Mart" className="h-15 w-auto" />
           </div>
 
 
@@ -551,6 +550,7 @@ export default function App() {
             © 2026 HAIDERS MART // KARACHI_NODE_01
           </div>
         </footer>
+        <SpeedInsights/>
       </main>
     </Router>
   );
