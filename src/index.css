@@ -43,7 +43,7 @@ input[type="range"].neon-slider::-webkit-slider-thumb {
     @apply bg-neon-orange text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest transition-all hover:scale-105 hover:shadow-[0_0_20px_#FF4E00] active:scale-95;
   }
 }
-
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap');
 
 /* Custom scrollbar */

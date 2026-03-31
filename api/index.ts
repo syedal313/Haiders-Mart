@@ -5,21 +5,21 @@ import { put } from '@vercel/blob';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
 import multer from 'multer';
-import fs from 'fs';
 import admin from 'firebase-admin';
 import path from 'path';
+import fs from 'fs';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'haiders-mart-secret-node-01';
 
 // --- Firebase Admin init ---
-
 if (!admin.apps.length) {
   let serviceAccount: any;
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
   } else {
-    // Fallback for local development (file should exist locally)
+    // Local fallback (only during development)
     const filePath = path.join(process.cwd(), 'haiders-mart-firebase-adminsdk-fbsvc-995d0f230e.json');
     const fileContent = fs.readFileSync(filePath, 'utf8');
     serviceAccount = JSON.parse(fileContent);
@@ -34,15 +34,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// --- Multer setup (local uploads – temporary) ---
-const uploadsDir = path.join(process.cwd(), 'public/uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
-});
+// --- Multer setup (memory storage) ---
 const upload = multer({ storage: multer.memoryStorage() });
 
 // --- Auth middleware ---
@@ -63,7 +55,7 @@ const isAdmin = (req: any, res: any, next: any) => {
   next();
 };
 
-// --- Hardcoded admin users (you can move to Firestore later) ---
+// --- Hardcoded admin users ---
 let users = [
   { id: 'admin-1', email: 'admin@haidersmart.pk', password: bcrypt.hashSync('admin123', 10), role: 'admin', name: 'Haider Admin' },
   { id: 'admin-2', email: '1shahali121@gmail.com', password: bcrypt.hashSync('#Admin313', 10), role: 'admin', name: 'Shah Ali Admin' },
@@ -107,7 +99,7 @@ app.get('/api/auth/me', (req, res) => {
   }
 });
 
-// --- Upload routes ---
+// --- Upload routes (Vercel Blob) ---
 app.post('/api/admin/upload-image', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
   const blob = await put(req.file.originalname, req.file.buffer, {
@@ -117,17 +109,16 @@ app.post('/api/admin/upload-image', authenticate, isAdmin, upload.single('image'
   res.json({ imageUrl: blob.url });
 });
 
-
-app.post('/api/admin/upload-glb', authenticate, isAdmin, upload.single('glb'), (req, res) => {
+app.post('/api/admin/upload-glb', authenticate, isAdmin, upload.single('glb'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No GLB file uploaded' });
-  const glbUrl = `/uploads/${req.file.filename}`;
-  res.json({ glbUrl });
+  const blob = await put(req.file.originalname, req.file.buffer, {
+    access: 'public',
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  });
+  res.json({ glbUrl: blob.url });
 });
 
-// --- Firestore routes (copy the rest from your server.ts) ---
-// Announcement, products, orders, etc. Paste them here.
-
-// Announcement
+// --- Firestore routes ---
 app.get('/api/announcement', async (req, res) => {
   const doc = await db.collection('announcement').doc('current').get();
   res.json(doc.exists ? doc.data() : { text: '', isActive: false, link: '#', color: 'cyan' });
@@ -139,7 +130,6 @@ app.post('/api/admin/announcement', authenticate, isAdmin, async (req, res) => {
   res.json(updated.data());
 });
 
-// Products
 app.get('/api/products', async (req, res) => {
   const snapshot = await db.collection('products').get();
   const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -164,7 +154,6 @@ app.delete('/api/admin/products/:id', authenticate, isAdmin, async (req, res) =>
   res.json({ success: true });
 });
 
-// Orders
 app.post('/api/orders', async (req, res) => {
   const { items, total, customer } = req.body;
   const orderId = `ORD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -187,8 +176,41 @@ app.get('/api/admin/orders', authenticate, isAdmin, async (req, res) => {
   res.json(orders);
 });
 
+app.post('/api/subscribe', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  await db.collection('subscribers').doc(email).set({ email, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+  res.json({ success: true });
+});
+
+// --- Reviews endpoint (single, correct version) ---
+
+app.post('/api/products/:id/reviews', authenticate, async (req, res) => {
+    
+  const { id } = req.params;
+  const { rating, comment, name } = req.body;
+ const user = (req as any).user;
+  const review = {
+    name: name || user?.name || 'Anonymous',
+    rating,
+    comment,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
+  const productRef = db.collection('products').doc(id);
+  const productDoc = await productRef.get();
+  if (!productDoc.exists) return res.status(404).json({ error: 'Product not found' });
+  const currentReviews = productDoc.data()?.reviews || [];
+  const updatedReviews = [...currentReviews, review];
+  const averageRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length;
+  await productRef.update({ reviews: updatedReviews, rating: averageRating });
+  res.json({ success: true, rating: averageRating });
+});
+
+
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), db: 'Firestore', region: 'Pakistan' });
 });
-// --- Export the app for Vercel ---
+
+
 export default app;

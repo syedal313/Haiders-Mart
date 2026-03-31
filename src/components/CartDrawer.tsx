@@ -79,10 +79,16 @@ export default function CartDrawer({ isOpen, onClose, onCheckout }: CartDrawerPr
                   <span className="text-white/50 font-bold uppercase tracking-widest text-xs">Total Credits</span>
                   <span className="text-3xl font-black font-display">Rs. {total.toLocaleString()}</span>
                 </div>
-                <button onClick={onCheckout} className="w-full neon-button-orange flex items-center justify-center gap-3">
-                  <CreditCard size={20} />
-                  Initialize Checkout
-                </button>
+             
+<button 
+  disabled={cart.length === 0}
+  onClick={onCheckout} 
+  className="w-full neon-button-orange flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  <CreditCard size={20} />
+  {cart.length > 0 ? 'Initialize Checkout' : 'System Offline'}
+</button>
+
                 <p className="text-[10px] text-center mt-4 text-white/20 uppercase tracking-widest">
                   Secure Transaction via Haiders Pay Node
                 </p>

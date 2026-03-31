@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { Analytics } from "@vercel/analytics/next"
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import CartDrawer from './components/CartDrawer';
+import WishlistDrawer from './components/WishlistDrawer';
 import Hero from './components/Hero';
 import ThreeBackground from './components/ThreeBackground';
 import ProductCard from './components/ProductCard';
@@ -11,10 +13,13 @@ import AnnouncementBar from './components/AnnouncementBar';
 import LoginPage from './pages/LoginPage';
 import AdminPortal from './pages/AdminPortal';
 import { useStore } from './store/useStore';
+import { CreditCard, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Filter, ChevronDown, SlidersHorizontal, CheckCircle2, ShoppingBag, ArrowRight, X, Sparkles, Star } from 'lucide-react';
 import ProductDetail from './components/ProductDetail';
-
+import ProductModal from './components/ProductModal';
+import { useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -37,6 +42,9 @@ interface Filters {
 type SortOption = 'price-low' | 'price-high' | 'name-az' | 'name-za' | 'popularity';
 
 function HomePage() {
+  // Inside HomePage component (in App.tsx)
+
+
   const [products, setProducts] = useState<Product[]>([]);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +55,7 @@ function HomePage() {
     priceRange: [0, 10000],
     minRating: 0
   });
-    const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetch('/api/products')
@@ -93,7 +101,7 @@ function HomePage() {
       categories: filters.categories.filter((c) => c !== cat),
     });
   };
-    const handleQuickView = (product: Product) => {
+  const handleQuickView = (product: Product) => {
     setQuickViewProduct(product);
   };
 
@@ -107,23 +115,37 @@ function HomePage() {
       minRating: 0
     });
   };
-
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  useEffect(() => {
+    if (categoryParam) {
+      setFilters(prev => ({ ...prev, categories: [categoryParam] }));
+    }
+  }, [categoryParam]);
+  const [email, setEmail] = useState('');
+  const handleSubscribe = async () => {
+    if (!email) return;
+    try {
+      const res = await fetch('/api/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      if (res.ok) alert('Subscribed successfully!'); else alert('Subscription failed.');
+    } catch (err) { console.error(err); }
+  };
   return (
     <>
       <Hero />
-            <section className="max-w-7xl mx-auto px-6 py-24">
+      <section id="catalog" className="max-w-7xl mx-auto px-6 py-24">
         <div className="flex flex-col lg:flex-row gap-12">
 
           {/* STATIC SIDEBAR - DESKTOP */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             {/* STATIC SIDEBAR - DESKTOP */}
-<SidebarFilters
+            <SidebarFilters
               filters={filters}
               setFilters={setFilters}
               maxPrice={maxPrice}
               variant="static" isOpen={false} onClose={function (): void {
                 throw new Error('Function not implemented.');
-              } }/>
+              }} />
           </aside>
 
           {/* MAIN PRODUCT AREA */}
@@ -141,26 +163,25 @@ function HomePage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-4">
-                              {/* Sort Options */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
-                {[ 
-                  { id: 'popularity', label: 'Popularity' }, 
-                  { id: 'price-low', label: 'Price: Low-High' }, 
-                  { id: 'price-high', label: 'Price: High-Low' }, 
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setSortBy(opt.id as SortOption)}
-                    className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                      sortBy === opt.id
-                        ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,210,255,0.5)]'
-                        : 'text-white/40 hover:text-white'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+                {/* Sort Options */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
+                  {[
+                    { id: 'popularity', label: 'Popularity' },
+                    { id: 'price-low', label: 'Price: Low-High' },
+                    { id: 'price-high', label: 'Price: High-Low' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setSortBy(opt.id as SortOption)}
+                      className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${sortBy === opt.id
+                          ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,210,255,0.5)]'
+                          : 'text-white/40 hover:text-white'
+                        }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
 
                 <button
                   onClick={() => setIsSidebarOpen(true)}
@@ -218,7 +239,7 @@ function HomePage() {
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.3 }}
                     >
-<ProductCard product={product} onQuickView={handleQuickView} />
+                      <ProductCard product={product} onQuickView={handleQuickView} />
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -239,7 +260,6 @@ function HomePage() {
                 </button>
               </div>
             )}
-
             {/* AI Recommendations */}
             {!loading && recommendations.length > 0 && (
               <div className="mt-32">
@@ -296,15 +316,6 @@ function HomePage() {
         variant="drawer"
       />
 
-      {/* MOBILE FILTER DRAWER */}
-      <SidebarFilters
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        filters={filters}
-        setFilters={setFilters}
-        maxPrice={maxPrice}
-        variant="drawer"
-      />
     </>
   );
 }
@@ -346,7 +357,12 @@ function CheckoutModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative w-full max-w-xl glass-card p-10 border-neon-cyan/30">
+          <motion.div
+  initial={{ scale: 0.9, opacity: 0 }}
+  animate={{ scale: 1, opacity: 1 }}
+  exit={{ scale: 0.9, opacity: 0 }}
+  className="relative w-full max-w-xl glass-card p-10 border-neon-cyan/30 max-h-[90vh] overflow-y-auto"
+>
             <button onClick={onClose} className="absolute top-6 right-6 text-white/30 hover:text-white"><X size={24} /></button>
 
             {step === 1 && (
@@ -443,9 +459,26 @@ function CheckoutModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 }
 
 export default function App() {
+  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+
   const [user, setUser] = useState<any>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-
+  // 👇 Add these lines
+  const [email, setEmail] = useState('');
+  const handleSubscribe = async () => {
+    if (!email) return;
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      if (res.ok) alert('Subscribed successfully!');
+      else alert('Subscription failed.');
+    } catch (err) {
+      console.error(err);
+    }
+  };
   useEffect(() => {
     fetch('/api/auth/me')
       .then(res => res.json())
@@ -461,13 +494,13 @@ export default function App() {
         <ThreeBackground />
         <Navbar onCheckout={() => setIsCheckoutOpen(true)} user={user} />
 
-        
+
         <Routes>
-  <Route path="/" element={<HomePage />} />
-  <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
-  <Route path="/admin" element={<AdminPortal />} />
-  <Route path="/product/:id" element={<ProductDetail />} />   {/* ← NEW */}
-</Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
+          <Route path="/admin" element={<AdminPortal />} />
+          <Route path="/product/:id" element={<ProductDetail />} />   {/* ← NEW */}
+        </Routes>
         <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
 
         <section className="max-w-7xl mx-auto px-6 py-24">
@@ -485,11 +518,14 @@ export default function App() {
                 <input
                   type="email"
                   placeholder="ENTER YOUR COMMS ID"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-4 focus:outline-none focus:border-neon-cyan transition-colors font-mono text-sm"
                 />
-                <button className="neon-button-orange whitespace-nowrap">
+                <button onClick={handleSubscribe} className="neon-button-orange whitespace-nowrap">
                   Initialize
                 </button>
+
               </div>
             </div>
           </div>
@@ -502,6 +538,7 @@ export default function App() {
               HAIDERS <span className="text-neon-cyan">MART</span>
             </span>
           </div>
+
 
           <div className="flex gap-8 text-[10px] uppercase font-bold tracking-widest text-white/30">
             <a href="#" className="hover:text-white transition-colors">Privacy Protocol</a>

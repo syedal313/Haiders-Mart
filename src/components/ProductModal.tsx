@@ -1,7 +1,21 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ShoppingCart, Heart, Sparkles , Star} from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { Product } from './ProductCard';
+import { GoogleGenAI } from '@google/genai';
+
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  originalPrice?: number;
+  discountPercentage?: number;
+  image: string;
+  description: string;
+  rating: number;
+}
 export default function ProductModal({ product, isOpen, onClose }: { product: Product | null; isOpen: boolean; onClose: () => void }) {
   const { addToCart, addToWishlist } = useStore();
 

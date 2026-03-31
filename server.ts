@@ -8,6 +8,10 @@ import cookieParser from "cookie-parser";
 import multer from "multer";
 import fs from "fs";
 import admin from "firebase-admin";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables from .env file
 
 const JWT_SECRET = "haiders-mart-secret-node-01";
 
@@ -322,6 +326,14 @@ async function startServer() {
     const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json(orders);
   });
+
+  app.post("/api/subscribe", async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email required" });
+    await db.collection("subscribers").doc(email).set({ email, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    res.json({ success: true });
+  });
+
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString(), db: "Firestore", region: "Pakistan" });

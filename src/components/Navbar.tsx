@@ -39,21 +39,24 @@ export default function Navbar({ onCheckout, user }: NavbarProps) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+ useEffect(() => {
+  const delayDebounceFn = setTimeout(() => {
     if (searchQuery.trim().length > 1) {
-      fetch('/api/products')
-        .then(res => res.json())
-        .then((data: Product[]) => {
-          const filtered = data.filter(p => 
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.description.toLowerCase().includes(searchQuery.toLowerCase())
+      fetch(`/api/products?q=${searchQuery}`) // Better to filter on server
+        .then(res => res.ok ? res.json() : [])
+        .then((data) => {
+          const filtered = data.filter((p: Product) => 
+            p.name.toLowerCase().includes(searchQuery.toLowerCase())
           ).slice(0, 5);
           setSearchResults(filtered);
-        });
-    } else {
-      setSearchResults([]);
+        })
+        .catch(() => setSearchResults([]));
     }
-  }, [searchQuery]);
+  }, 300); // Wait 300ms
+
+  return () => clearTimeout(delayDebounceFn);
+}, [searchQuery]);
+
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
     const wishlist = useStore((state) => state.wishlist);
   useEffect(() => {
@@ -259,13 +262,18 @@ export default function Navbar({ onCheckout, user }: NavbarProps) {
                   <Search size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-white/30" />
                 </div>
 
-                <div className="space-y-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 ml-2">Navigation</p>
-                  <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block text-2xl font-black font-display uppercase tracking-tighter hover:text-neon-cyan transition-colors">Home Hub</Link>
-                  <a href="#" className="block text-2xl font-black font-display uppercase tracking-tighter hover:text-neon-cyan transition-colors">Garments</a>
-                  <a href="#" className="block text-2xl font-black font-display uppercase tracking-tighter hover:text-neon-cyan transition-colors">Pharmacy</a>
-                  <a href="#" className="block text-2xl font-black font-display uppercase tracking-tighter hover:text-neon-cyan transition-colors">Skincare</a>
-                </div>
+              <div className="space-y-4">
+  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 ml-2">Navigation</p>
+  <Link to="/?category=Garments" onClick={() => setIsMobileMenuOpen(false)} className="block text-2xl font-black font-display uppercase tracking-tighter hover:text-neon-cyan transition-colors">
+    Garments
+  </Link>
+  <Link to="/?category=Pharmacy" onClick={() => setIsMobileMenuOpen(false)} className="block text-2xl font-black font-display uppercase tracking-tighter hover:text-neon-cyan transition-colors">
+    Pharmacy
+  </Link>
+  <Link to="/?category=Skincare" onClick={() => setIsMobileMenuOpen(false)} className="block text-2xl font-black font-display uppercase tracking-tighter hover:text-neon-cyan transition-colors">
+    Skincare
+  </Link>
+</div>
 
                 <div className="space-y-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 ml-2">Account</p>

@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
-
+import { Link } from 'react-router-dom';
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
@@ -21,18 +21,20 @@ export default function Hero() {
             </span>
           </h1>
           <p className="text-lg text-white/60 max-w-lg mb-10 leading-relaxed">
-            Experience Pakistan's first 3D-immersive e-commerce platform. 
+            Experience Pakistan's first 3D-immersive e-commerce platform.
             Garments, Pharmacy, and Styling curated for the next generation.
           </p>
           <div className="flex flex-wrap gap-4">
-            <button className="neon-button-orange flex items-center gap-2 group">
-              Shop Now
-              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button className="px-8 py-3 rounded-full border border-white/20 font-bold uppercase tracking-widest hover:bg-white/5 transition-colors">
-              View 3D Catalog
-            </button>
-          </div>
+  <button 
+    onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}
+    className="neon-button-orange flex items-center gap-2 group"
+  >
+    Shop Now <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+  </button>
+  <Link to="/product/1" className="px-8 py-3 rounded-full border border-white/20 font-bold uppercase tracking-widest hover:bg-white/5 transition-colors">
+    View 3D Catalog
+  </Link>
+</div>
         </motion.div>
 
         <motion.div
@@ -42,17 +44,17 @@ export default function Hero() {
           className="relative hidden lg:block"
         >
           <div className="relative z-10 w-full aspect-square glass-card p-8 neon-border-cyan flex items-center justify-center overflow-hidden group">
-            <img 
-              src="https://picsum.photos/seed/futuristic-fashion/1000/1000" 
-              alt="Futuristic Model" 
+            <img
+              src="https://picsum.photos/seed/futuristic-fashion/1000/1000"
+              alt="Futuristic Model"
               className="w-full h-full object-cover rounded-xl grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-neon-cyan/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
-          
+
           {/* Floating elements */}
-          <motion.div 
+          <motion.div
             animate={{ y: [0, -20, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="absolute -top-10 -right-10 w-32 h-32 glass-card p-4 flex flex-col items-center justify-center text-center"
@@ -60,8 +62,8 @@ export default function Hero() {
             <span className="text-neon-orange font-black text-xl">40%</span>
             <span className="text-[10px] uppercase font-bold text-white/50">Flash Sale</span>
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             animate={{ y: [0, 20, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
             className="absolute -bottom-10 -left-10 w-40 h-20 glass-card p-4 flex items-center gap-3"

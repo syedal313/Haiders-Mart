@@ -41,7 +41,7 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
             alt={product.name} 
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
-          <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-black/50 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-neon-cyan">
+<div className="absolute bottom-3 right-3 flex flex-col gap-2 transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 max-[640px]:opacity-100 max-[640px]:translate-y-0">
             {product.category}
           </div>
 
@@ -78,6 +78,12 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
       </div>
 
       {/* Action buttons */}
+      <button 
+  onClick={(e) => { e.preventDefault(); onQuickView && onQuickView(product); }}
+  className="absolute top-3 right-3 p-2 rounded-full bg-black/50 backdrop-blur-md text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-all max-[640px]:opacity-100 max-[640px]:translate-y-0"
+>
+  Quick View
+</button>
       <div className="absolute bottom-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
         <button 
           onClick={(e) => { e.preventDefault(); addToCompare(product); }}

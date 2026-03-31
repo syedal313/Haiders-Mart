@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { ArrowLeft, Star, ShoppingCart, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ArrowLeft, Star, ShoppingCart, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, MeshDistortMaterial, useGLTF } from '@react-three/drei';
+import { Clock } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -13,135 +12,252 @@ interface Product {
   price: number;
   originalPrice?: number;
   discountPercentage?: number;
+  images: string[];
   image: string;
-  images?: string[];
-  glbUrl?: string;           // ← Add this line
   description: string;
   rating: number;
   reviews?: { name: string; rating: number; comment: string }[];
 }
-function Model({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
-  return <primitive object={scene} scale={1.5} />;
-}
+
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
-  const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const addToCart = useStore((state) => state.addToCart);
 
+  // Review state
+  const [reviewName, setReviewName] = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+
+  // Fetch product
   useEffect(() => {
     fetch('/api/products')
       .then(res => res.json())
       .then((data: Product[]) => {
         const found = data.find(p => p.id === id);
         if (found) {
-          if (!found.images) found.images = [found.image, found.image, found.image];
-          setProduct(found);
+          const gallery = found.images && found.images.length > 0
+            ? found.images
+            : [found.image, found.image, found.image];
+          setProduct({ ...found, images: gallery });
         }
       });
   }, [id]);
+  // Submit review
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewRating) return alert('Please select a rating');
+    try {
+      const res = await fetch(`/api/products/${product?.id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: reviewName, rating: reviewRating, comment: reviewComment }),
+      });
+      if (res.ok) {
+        alert('Review submitted!');
+        const refreshed = await fetch(`/api/products/${product?.id}`).then(r => r.json());
+        setProduct(refreshed);
+        setReviewName('');
+        setReviewRating(0);
+        setReviewComment('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
 
-  if (!product) return <div className="min-h-screen flex items-center justify-center text-white">Loading product...</div>;
+
+  if (!product) return <div className="min-h-screen flex items-center justify-center text-white">Loading...</div>;
 
   return (
-    <div className="min-h-screen pt-20 pb-12 bg-[#050505]">
+    <div className="min-h-screen pt-24 pb-12 bg-[#050505]">
       <div className="max-w-7xl mx-auto px-6">
-        <Link to="/" className="flex items-center gap-2 text-white/60 hover:text-white mb-8">
+        <Link to="/" className="flex items-center gap-2 text-white/60 hover:text-neon-cyan mb-8 transition-colors w-fit">
           <ArrowLeft size={20} /> Back to Catalog
         </Link>
 
         <div className="grid lg:grid-cols-2 gap-12">
-          {/* Left: Images + 3D */}
-         {/* Left: Images + 3D Viewer */}
-<div className="space-y-6">
-  {/* Main 3D / Image Viewer */}
-  <div className="aspect-square rounded-3xl overflow-hidden bg-white/5 border border-white/10">
-    {product.glbUrl ? (
-      // Real uploaded 3D model
-      <Canvas camera={{ position: [0, 0, 3] }} className="w-full h-full">
-        <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        <Model url={product.glbUrl} />
-        <OrbitControls enableZoom={true} enablePan={true} />
-      </Canvas>
-    ) : (
-      // Fallback 3D (if no GLB uploaded)
-      <Canvas camera={{ position: [0, 0, 3] }} className="w-full h-full">
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
-        <mesh>
-          <torusKnotGeometry args={[1, 0.3, 100, 16]} />
-          <MeshDistortMaterial color="#00D2FF" distort={0.4} speed={2} />
-        </mesh>
-        <OrbitControls />
-      </Canvas>
-    )}
-  </div>
+          {/* LEFT: GALLERY */}
+          <div className="space-y-4">
+            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-white/5 border border-white/10 group">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={selectedImageIndex}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  src={product.images[selectedImageIndex]}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </AnimatePresence>
 
-  {/* Thumbnails + 3D Button */}
-  <div className="flex gap-4">
-    {product.images?.map((img, index) => (
-      <button
-        key={index}
-        onClick={() => setSelectedImage(index)}
-        className={`flex-1 aspect-square rounded-2xl overflow-hidden border-2 transition-all ${selectedImage === index ? 'border-neon-cyan' : 'border-transparent'}`}
-      >
-        <img src={img} alt="" className="w-full h-full object-cover" />
-      </button>
-    ))}
-  </div>
-</div>
+              {product.images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setSelectedImageIndex(prev => prev === 0 ? product.images.length - 1 : prev - 1)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-neon-cyan hover:text-black"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button
+                    onClick={() => setSelectedImageIndex(prev => prev === product.images.length - 1 ? 0 : prev + 1)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-neon-cyan hover:text-black"
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                </>
+              )}
 
-          {/* Right: Details */}
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="px-4 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest">{product.category}</span>
-              <div className="flex items-center gap-1 text-neon-orange">
-                <Star size={18} fill="currentColor" />
-                <span className="font-bold">{product.rating}</span>
-              </div>
-            </div>
-
-            <h1 className="text-5xl font-black font-display leading-tight mb-6">{product.name}</h1>
-
-            <div className="flex items-baseline gap-4 mb-8">
-              <span className="text-4xl font-black font-display text-neon-cyan">Rs. {product.price.toLocaleString()}</span>
-              {product.originalPrice && (
-                <span className="text-xl text-white/40 line-through">Rs. {product.originalPrice.toLocaleString()}</span>
+              {product.discountPercentage && (
+                <div className="absolute top-4 right-4 bg-neon-magenta text-white px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest shadow-[0_0_15px_rgba(255,0,229,0.5)]">
+                  -{product.discountPercentage}% OFF
+                </div>
               )}
             </div>
 
-            <p className="text-white/70 leading-relaxed mb-10">{product.description}</p>
+            {product.images.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {product.images.map((img, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
+                      selectedImageIndex === index
+                        ? 'border-neon-cyan scale-105 shadow-[0_0_10px_rgba(0,210,255,0.3)]'
+                        : 'border-transparent opacity-50 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-            <div className="flex gap-4 mb-12">
-              <button 
-                onClick={() => addToCart(product)}
-                className="flex-1 neon-button-orange flex items-center justify-center gap-3 py-5 text-lg"
-              >
-                <ShoppingCart size={24} />
-                Add to Cart
-              </button>
-              <button className="px-8 py-5 rounded-3xl border border-white/20 hover:bg-white/5 transition-colors">
-                <Heart size={24} />
-              </button>
-            </div>
-
-            {/* Reviews */}
+          {/* RIGHT: INFO & REVIEWS */}
+          <div className="flex flex-col justify-center space-y-8">
             <div>
-              <h3 className="text-xl font-black uppercase mb-6">Customer Reviews</h3>
-              {product.reviews?.map((review, i) => (
-                <div key={i} className="glass-card p-6 mb-4">
-                  <div className="flex justify-between mb-3">
-                    <div className="font-bold">{review.name}</div>
-                    <div className="flex text-neon-orange">
-                      {Array(review.rating).fill(0).map((_, k) => <Star key={k} size={16} fill="currentColor" />)}
-                    </div>
-                  </div>
-                  <p className="text-white/70 text-sm">{review.comment}</p>
+              <div className="flex items-center justify-between mb-4">
+                <span className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-neon-cyan text-xs font-bold uppercase tracking-widest">
+                  {product.category}
+                </span>
+                <div className="flex items-center gap-2 text-neon-orange">
+                  <Star size={18} fill="currentColor" />
+                  <span className="font-bold text-lg">{product.rating}</span>
                 </div>
-              ))}
+              </div>
+
+              <h1 className="text-4xl md:text-5xl font-black font-display leading-tight mb-4 text-white">
+                {product.name}
+              </h1>
+
+              <div className="flex items-end gap-4 mb-6">
+                <span className="text-3xl md:text-4xl font-black text-neon-cyan font-display">
+                  Rs. {product.price.toLocaleString()}
+                </span>
+                {product.originalPrice && (
+                  <span className="text-base text-white/30 line-through font-bold">
+                    Rs. {product.originalPrice.toLocaleString()}
+                  </span>
+                )}
+              </div>
+
+              <p className="text-white/60 leading-relaxed mb-8 text-base">
+                {product.description}
+              </p>
+
+              <div className="flex flex-wrap gap-4 mb-8">
+                <button
+                  onClick={() => addToCart(product)}
+                  className="flex-1 min-w-[180px] bg-neon-cyan text-black font-black uppercase tracking-widest py-4 rounded-xl hover:shadow-[0_0_30px_rgba(0,210,255,0.4)] transition-all flex items-center justify-center gap-2 group"
+                >
+                  <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
+                  Add to Cart
+                </button>
+                <button className="px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:text-neon-magenta transition-colors">
+                  <Heart size={24} />
+                </button>
+              </div>
             </div>
+
+            {/* Write a Review */}
+            <div className="border-t border-white/10 pt-8">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-white/40 mb-4">Write a Review</h3>
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-white/40 block mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={reviewName}
+                    onChange={(e) => setReviewName(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-white/40 block mb-1">Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((r) => (
+                      <button
+                        type="button"
+                        key={r}
+                        onClick={() => setReviewRating(r)}
+                        className={`text-2xl ${reviewRating >= r ? 'text-neon-orange' : 'text-white/30'}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-white/40 block mb-1">Comment</label>
+                  <textarea
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    rows={3}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-neon-cyan text-black font-black uppercase tracking-widest py-3 rounded-xl hover:shadow-[0_0_30px_rgba(0,210,255,0.4)] transition-all"
+                >
+                  Submit Review
+                </button>
+              </form>
+            </div>
+
+            {/* Existing Reviews */}
+            {product.reviews && product.reviews.length > 0 && (
+              <div className="border-t border-white/10 pt-8">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-white/40 mb-4">Recent Reviews</h3>
+                <div className="space-y-4">
+                  {product.reviews.map((review, i) => (
+                    <div key={i} className="bg-white/5 p-4 rounded-xl">
+                      <div className="flex justify-between mb-2">
+                        <span className="font-bold text-sm">{review.name}</span>
+                        <div className="flex text-neon-orange">
+                          {[...Array(5)].map((_, k) => (
+                            <Star
+                              key={k}
+                              size={12}
+                              fill={k < review.rating ? 'currentColor' : 'none'}
+                              className={k >= review.rating ? 'text-white/10' : ''}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-xs text-white/60">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
