@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Analytics } from "@vercel/analytics/next"
+import { Instagram, Twitter, Mail } from 'lucide-react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import CartDrawer from './components/CartDrawer';
@@ -22,6 +23,9 @@ import { useSearchParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import logo from './components/public/logo1.png';
+import TermsOfService from './components/TermsOfService';
+import ContactUs from './ContactUs';
+import AboutUs from './components/AboutUs';
 
 interface Product {
   id: string;
@@ -501,8 +505,14 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
           <Route path="/admin" element={<AdminPortal />} />
-          <Route path="/product/:id" element={<ProductDetail />} />   {/* ← NEW */}
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/about" element={<AboutUs />} />
+
+             {/* ← NEW */}
         </Routes>
+
         <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
 
         <section className="max-w-7xl mx-auto px-6 py-24">
@@ -533,23 +543,50 @@ export default function App() {
           </div>
         </section>
 
-        <footer className="max-w-7xl mx-auto px-6 py-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-2">
-              <img src={logo} alt="Haiders Mart" className="h-15 w-auto" />
-          </div>
+       <footer className="max-w-7xl mx-auto px-6 py-12 border-t border-white/5">
+  <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
+    {/* Logo */}
+    <div className="flex items-center gap-2">
+      <img src={logo} alt="Haiders Mart Logo" className="w-auto h-15" />  
+    </div>
 
+    {/* Social & Contact Links */}
+    <div className="flex gap-6">
+      <a 
+        href="https://www.instagram.com/haiders.mart.official/" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="text-white/40 hover:text-neon-cyan transition-colors"
+      >
+        <Instagram size={20} />
+      </a>
+      <a 
+        href="https://x.com/Farhans_Mart" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="text-white/40 hover:text-neon-cyan transition-colors"
+      >
+        <Twitter size={20} />
+      </a>
+    </div>
 
-          <div className="flex gap-8 text-[10px] uppercase font-bold tracking-widest text-white/30">
-            <a href="#" className="hover:text-white transition-colors">Privacy Protocol</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Shipping Nodes</a>
-            <a href="#" className="hover:text-white transition-colors">Contact Core</a>
-          </div>
+    {/* Navigation Links */}
+    <div className="flex gap-8 text-[10px] uppercase font-bold tracking-widest text-white/30">
+  <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+  <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>
+  <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
+</div>
+  </div>
 
-          <div className="text-[10px] text-white/20 font-mono">
-            © 2026 HAIDERS MART // KARACHI_NODE_01
-          </div>
-        </footer>
+  {/* Email Contact Line */}
+  <div className="text-center text-[12px] text-white/30 mt-4">
+    <span className="font-mono">✉️ haiders.mart.official@gmail.com</span>
+  </div>
+
+  <div className="text-center text-[10px] text-white/20 font-mono mt-6">
+    © 2026 FARHANS MART // KARACHI_NODE_01
+  </div>
+</footer>
         <SpeedInsights/>
       </main>
     </Router>

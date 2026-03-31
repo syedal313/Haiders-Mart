@@ -212,5 +212,24 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), db: 'Firestore', region: 'Pakistan' });
 });
 
+app.post('/api/contact', async (req, res) => {
+  const { name, email, phone, message } = req.body;
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  try {
+    await db.collection('contacts').add({
+      name,
+      email,
+      phone: phone || '',
+      message,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Contact submission error:', error);
+    res.status(500).json({ error: 'Failed to save contact' });
+  }
+});
 
 export default app;

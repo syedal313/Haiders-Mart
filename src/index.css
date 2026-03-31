@@ -60,3 +60,70 @@ input[type="range"].neon-slider::-webkit-slider-thumb {
 ::-webkit-scrollbar-thumb:hover {
   background: #FF4E00;
 }
+/* Light mode overrides *//* Light mode overrides */
+html.light {
+  --bg-primary: #f5f5f5;
+  --text-primary: #1a1a1a;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+html.light body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+html.light .glass-card {
+  background-color: rgba(255,255,255,0.8);
+  border-color: rgba(0,0,0,0.1);
+}
+
+/* Override all text-white and text-white/opacity classes */
+html.light [class*="text-white"] {
+  color: var(--text-primary) !important;
+}
+
+html.light .text-white\/50 {
+  color: rgba(0,0,0,0.5) !important;
+}
+html.light .text-white\/60 {
+  color: rgba(0,0,0,0.6) !important;
+}
+html.light .text-white\/70 {
+  color: rgba(0,0,0,0.7) !important;
+}
+html.light .text-white\/40 {
+  color: rgba(0,0,0,0.4) !important;
+}
+html.light .text-white\/30 {
+  color: rgba(0,0,0,0.3) !important;
+}
+html.light .text-white\/20 {
+  color: rgba(0,0,0,0.2) !important;
+}
+
+/* Override background and border classes that use white with opacity */
+html.light .bg-white\/5,
+html.light .bg-white\/10,
+html.light .bg-white\/20 {
+  background-color: rgba(0,0,0,0.05) !important;
+}
+html.light .border-white\/10,
+html.light .border-white\/20,
+html.light .border-white\/5 {
+  border-color: rgba(0,0,0,0.1) !important;
+}
+html.light .bg-\[\#050505\] {
+  background-color: var(--bg-primary) !important;
+}
+
+/* Keep neon colors bright for accent */
+html.light .text-neon-cyan {
+  color: #00D2FF !important;
+}
+html.light .text-neon-orange {
+  color: #FF4E00 !important;
+}
+html.light .text-neon-magenta {
+  color: #FF00E5 !important;
+}

@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import VoiceSearch from './VoiceSearch';
 import CartDrawer from './CartDrawer';
 import logo from './public/logo1.png';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+
 
 import { Link} from 'react-router-dom';
 import WishlistDrawer from './WishlistDrawer';
@@ -39,7 +42,7 @@ export default function Navbar({ onCheckout, user }: NavbarProps) {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-
+const { theme, toggleTheme } = useTheme();
  useEffect(() => {
   const delayDebounceFn = setTimeout(() => {
     if (searchQuery.trim().length > 1) {
@@ -150,6 +153,12 @@ export default function Navbar({ onCheckout, user }: NavbarProps) {
           </div>
 
           <div className="flex items-center gap-4 md:gap-6">
+            <button
+  onClick={toggleTheme}
+  className="p-2 hover:bg-white/5 rounded-full transition-colors"
+>
+  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+</button>
             <button 
               onClick={() => setIsCompareOpen(true)}
               className="relative p-2 hover:bg-white/5 rounded-full transition-colors group hidden sm:block"
@@ -376,6 +385,7 @@ export default function Navbar({ onCheckout, user }: NavbarProps) {
                 </div>
               )}
             </motion.div>
+            
           </div>
         )}
       </AnimatePresence>
@@ -386,6 +396,7 @@ export default function Navbar({ onCheckout, user }: NavbarProps) {
         isOpen={isWishlistOpen} 
         onClose={() => setIsWishlistOpen(false)} 
       />
+      
     </>
   );
 }
