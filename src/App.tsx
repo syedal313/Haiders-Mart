@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import CartDrawer from './components/CartDrawer';
@@ -552,6 +553,7 @@ export default function App() {
           </div>
         </footer>
       </main>
+      <SpeedInsights />
     </Router>
   );
 }
